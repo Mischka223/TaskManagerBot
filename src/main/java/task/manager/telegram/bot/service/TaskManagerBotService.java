@@ -1,5 +1,6 @@
 package task.manager.telegram.bot.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -9,6 +10,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import task.manager.telegram.bot.model.FinalMessage;
+import task.manager.telegram.bot.utils.Parser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,8 +21,15 @@ import java.util.stream.Collectors;
 public class TaskManagerBotService extends TelegramLongPollingBot {
 
     private static final String START_BUTTON = "/start";
-    private static final String CREATE_SPRINT = "/створити спрінт";
-    private static final String GET_SPRINTS = "/переглянути спрінти";
+    private final Parser parser;
+
+    private final SprintService sprintService;
+
+    @Autowired
+    public TaskManagerBotService(Parser parser, SprintService sprintService) {
+        this.parser = parser;
+        this.sprintService = sprintService;
+    }
 
     @Override
     public String getBotUsername() {
@@ -37,15 +47,21 @@ public class TaskManagerBotService extends TelegramLongPollingBot {
 
         if (message != null && update.getMessage().hasText()) {
             if (message.getText().equals(START_BUTTON)) {
-                sendMsg(message, "Ітак, пігнали складати твій план", List.of(CREATE_SPRINT));
+                sendMsg(message, "Ітак, пігнали складати твій план", List.of("створити спрінт", "всі спрінти"));
+                return;
             }
-            if (message.getText().equals(CREATE_SPRINT)) {
-                sendMsg(message, "Як називається ваш спрінт?");
+            FinalMessage finalMessage = parser.giveWork(update);
+            List<String> buttons = finalMessage.getButtons();
+
+            if (buttons.isEmpty()) {
+                sendMsg(finalMessage.getMessage(), finalMessage.getMessageText());
+            } else {
+                sendMsg(finalMessage.getMessage(), finalMessage.getMessageText(), buttons);
             }
         }
     }
 
-    private void sendMsg(Message message, String text) {
+    public void sendMsg(Message message, String text) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(String.valueOf(message.getChatId()));
         sendMessage.setText(text);
@@ -61,11 +77,12 @@ public class TaskManagerBotService extends TelegramLongPollingBot {
         }
     }
 
-    private void sendMsg(Message message, String text, List<String> buttonsNames) {
+    public void sendMsg(Message message, String text, List<String> buttonsNames) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(String.valueOf(message.getChatId()));
         sendMessage.setText(text);
         sendMessage.enableMarkdown(true);
+        System.out.println(sendMessage);
         setButtons(sendMessage, buttonsNames);
         try {
             execute(sendMessage);
