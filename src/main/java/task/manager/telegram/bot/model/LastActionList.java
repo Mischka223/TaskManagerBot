@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class LastActionList {
-    private List<Action> lastActions;
+    private static LastActionList lastActionList = new LastActionList();
+    private final List<Action> lastActions;
 
     public void addLastAction(long chatId, String lastAction){
         Optional<Action> actionByChatId = lastActions.stream().filter(action -> action.getChatId() == chatId).findFirst();
@@ -25,7 +26,12 @@ public class LastActionList {
     }
 
 
-    public LastActionList(){
-        lastActions = new ArrayList<>();
+    private LastActionList(){
+        this.lastActions = new ArrayList<>();
     }
+
+    public static LastActionList getInstance(){
+        return lastActionList;
+    }
+
 }

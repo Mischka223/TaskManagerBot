@@ -4,51 +4,71 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import task.manager.telegram.bot.model.FinalMessage;
 import task.manager.telegram.bot.model.LastActionList;
 import task.manager.telegram.bot.model.Sprint;
+import task.manager.telegram.bot.sender.MessageSender;
+import task.manager.telegram.bot.utils.Action;
+import task.manager.telegram.bot.utils.SprintAction;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
-public class SprintActioner {
-    private static final String CREATE_SPRINT = "створити спрінт";
-    private static final String GET_SPRINTS = "переглянути спрінти";
-
+public class SprintActioner implements Actioner {
+    private static final LastActionList lastActionList = LastActionList.getInstance();
     private final SprintService sprintService;
-    private static final LastActionList lastActionList = new LastActionList();
+    private final MessageSender messageSender;
+
 
     @Autowired
-    public SprintActioner(SprintService sprintService) {
+    public SprintActioner(SprintService sprintService, MessageSender messageSender) {
         this.sprintService = sprintService;
+        this.messageSender = messageSender;
     }
 
 
-    public FinalMessage determineWork(Update update) {
-        Message message = update.getMessage();
-        if (message != null && update.getMessage().hasText()) {
-            Long chatId = message.getChatId();
-            System.out.println(message.getText());
-            if (message.getText().equals(GET_SPRINTS)) {
-                lastActionList.addLastAction(chatId, GET_SPRINTS);
-                List<Sprint> sprintsByChatId = sprintService.getSprintsByChatId(message.getChatId());
-                if (sprintsByChatId.isEmpty()) {
-                    return new FinalMessage(message, "На даний момент у вас немає спрінтів", List.of(CREATE_SPRINT));
-                }
-                return new FinalMessage(message, sprintsByChatId.toString(), List.of(CREATE_SPRINT));
-            }
+    public void determineWork(Update update, Action action) {
+        List<String> buttonNames = action.getActions().stream().map(Action::getActionText).collect(Collectors.toList());
 
-            lastActionList.getMaybeActionByChatId(chatId).ifPresent(action -> {
-                if (action.getActionName().equals(CREATE_SPRINT)) {
-                    String sprintName = message.getText();
-                    sprintService.createSprint(new Sprint(chatId, sprintName));
-                }
-            });
-            if (message.getText().equals(CREATE_SPRINT)) {
-                lastActionList.addLastAction(chatId, CREATE_SPRINT);
-                return new FinalMessage(message, "Введи ім'я спрінта", List.of(GET_SPRINTS));
-            }
+        Message message = update.getMessage();
+        Long chatId = message.getChatId();
+        System.out.println(message.getText());
+
+        if (action.equals(SprintAction.GET_ALL_SPRINT)) {
+            getAllSprints(chatId, message, action, buttonNames);
+            return;
         }
-       return new FinalMessage(message,"Ви створили спрінт",List.of(GET_SPRINTS));
+
+        if (action.equals(SprintAction.SPRINT_CREATION)) {
+            createSprint(chatId, message, action, buttonNames);
+            return;
+        }
+
+        if (action.equals(SprintAction.CREATE_SPRINT)) {
+            createSprintClicked(chatId, message, action, buttonNames);
+        }
+    }
+
+
+    private void getAllSprints(Long chatId, Message message, Action action, List<String> buttonNames) {
+        lastActionList.addLastAction(chatId, SprintAction.GET_ALL_SPRINT.getActionText());
+        List<Sprint> sprintsByChatId = sprintService.getSprintsByChatId(chatId);
+        if (sprintsByChatId.isEmpty()) {
+            messageSender.sendMessage(message, action.getActionResponse(), buttonNames);
+            return;
+        }
+        messageSender.sendMessage(message, sprintsByChatId.toString(), buttonNames);
+    }
+
+    private void createSprintClicked(Long chatId, Message message, Action action, List<String> buttonNames) {
+        lastActionList.addLastAction(chatId, SprintAction.CREATE_SPRINT.getActionText());
+        messageSender.sendMessage(message, action.getActionResponse(), buttonNames);
+    }
+
+    private void createSprint(long chatId, Message message, Action action, List<String> buttonNames) {
+                String sprintName = message.getText();
+                sprintService.createSprint(new Sprint(chatId, sprintName));
+                lastActionList.addLastAction(chatId, action.getActionText());
+                messageSender.sendMessage(message, action.getActionResponse(), buttonNames);
     }
 }
