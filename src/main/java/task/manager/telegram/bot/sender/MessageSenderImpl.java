@@ -4,11 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import task.manager.telegram.bot.model.MessageSettings;
 import task.manager.telegram.bot.service.TaskManagerBotService;
-
-import java.util.List;
 
 @Component
 public class MessageSenderImpl implements MessageSender{
@@ -19,19 +17,10 @@ public class MessageSenderImpl implements MessageSender{
         this.sendMessageBuilder = sendMessageBuilder;
     }
 
-    public void sendMessage(Message message, String response, List<String> buttonNames) {
-        SendMessage defaultSendMessage = sendMessageBuilder.getDefaultSendMessage(message, response, buttonNames);
+    public void sendMessage(MessageSettings messageSettings) {
+        SendMessage sendMessage = sendMessageBuilder.getDefaultSendMessage(messageSettings);
         try {
-            taskManagerBotService.execute(defaultSendMessage);
-        } catch (TelegramApiException exception) {
-            exception.printStackTrace();
-        }
-    }
-
-    public void sendMessage(Message message, String response) {
-        SendMessage defaultSendMessage = sendMessageBuilder.getDefaultSendMessage(message, response);
-        try {
-            taskManagerBotService.execute(defaultSendMessage);
+            taskManagerBotService.execute(sendMessage);
         } catch (TelegramApiException exception) {
             exception.printStackTrace();
         }

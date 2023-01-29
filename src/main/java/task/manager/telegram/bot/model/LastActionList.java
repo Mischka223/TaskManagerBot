@@ -5,18 +5,16 @@ import java.util.List;
 import java.util.Optional;
 
 public class LastActionList {
-    private static LastActionList lastActionList = new LastActionList();
+    private static final LastActionList lastActionList = new LastActionList();
     private final List<Action> lastActions;
 
     public void addLastAction(long chatId, String lastAction){
         Optional<Action> actionByChatId = lastActions.stream().filter(action -> action.getChatId() == chatId).findFirst();
         Action newAction = new Action(chatId, lastAction);
         actionByChatId.ifPresentOrElse(action -> {
-            System.out.println("IF LAST ACTION PRESENT FOR CHAT ID =" + action + "| NEW ACTION = " + newAction);
          lastActions.remove(action);
          lastActions.add(newAction);
         }, () -> {
-            System.out.println("ACTION DOESN'T EXISTS FOR CHAT ID | NEW ACTION = " + newAction);
             lastActions.add(newAction);
         });
     }

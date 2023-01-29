@@ -2,6 +2,7 @@ package task.manager.telegram.bot.service;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import task.manager.telegram.bot.model.MessageSettings;
 import task.manager.telegram.bot.sender.MessageSender;
 import task.manager.telegram.bot.utils.Action;
 
@@ -23,6 +24,7 @@ public class DefaultActioner implements Actioner {
                 .stream()
                 .map(Action::getActionText)
                 .collect(Collectors.toList());
-        messageSender.sendMessage(update.getMessage(), action.getActionResponse(),buttonNames);
+
+        messageSender.sendMessage(new MessageSettings(update.getMessage(), action.getActionResponse(), buttonNames));
     }
 }

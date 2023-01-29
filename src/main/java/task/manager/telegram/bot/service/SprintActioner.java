@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import task.manager.telegram.bot.model.LastActionList;
+import task.manager.telegram.bot.model.MessageSettings;
 import task.manager.telegram.bot.model.Sprint;
 import task.manager.telegram.bot.sender.MessageSender;
 import task.manager.telegram.bot.utils.Action;
@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 @Component
 public class SprintActioner implements Actioner {
-    private static final LastActionList lastActionList = LastActionList.getInstance();
     private final SprintService sprintService;
     private final MessageSender messageSender;
 
@@ -28,47 +27,50 @@ public class SprintActioner implements Actioner {
 
 
     public void determineWork(Update update, Action action) {
-        List<String> buttonNames = action.getActions().stream().map(Action::getActionText).collect(Collectors.toList());
-
         Message message = update.getMessage();
-        Long chatId = message.getChatId();
-        System.out.println(message.getText());
+        List<String> buttonNames = action.getActions().stream().map(Action::getActionText).collect(Collectors.toList());
+        List<String> messageButtonNames = action.getMessageActions()
+                .stream()
+                .map(Action::getActionText)
+                .collect(Collectors.toList());
+
+        MessageSettings messageSettings = new MessageSettings(message, action.getActionResponse(), buttonNames, messageButtonNames);
 
         if (action.equals(SprintAction.GET_ALL_SPRINT)) {
-            getAllSprints(chatId, message, action, buttonNames);
+            getAllSprints(messageSettings);
             return;
         }
 
         if (action.equals(SprintAction.SPRINT_CREATION)) {
-            createSprint(chatId, message, action, buttonNames);
+            createSprint(messageSettings);
             return;
         }
 
         if (action.equals(SprintAction.CREATE_SPRINT)) {
-            createSprintClicked(chatId, message, action, buttonNames);
+            createSprintClicked(messageSettings);
         }
     }
 
 
-    private void getAllSprints(Long chatId, Message message, Action action, List<String> buttonNames) {
-        lastActionList.addLastAction(chatId, SprintAction.GET_ALL_SPRINT.getActionText());
+    private void getAllSprints(MessageSettings messageSettings) {
+        Long chatId = messageSettings.getMessage().getChatId();
         List<Sprint> sprintsByChatId = sprintService.getSprintsByChatId(chatId);
         if (sprintsByChatId.isEmpty()) {
-            messageSender.sendMessage(message, action.getActionResponse(), buttonNames);
+            messageSender.sendMessage(messageSettings);
             return;
         }
-        messageSender.sendMessage(message, sprintsByChatId.toString(), buttonNames);
+        MessageSettings messageSettingWithSprints = new MessageSettings(messageSettings, sprintsByChatId.toString());
+        sprintsByChatId.forEach(sprint -> messageSender.sendMessage(messageSettingWithSprints));
     }
 
-    private void createSprintClicked(Long chatId, Message message, Action action, List<String> buttonNames) {
-        lastActionList.addLastAction(chatId, SprintAction.CREATE_SPRINT.getActionText());
-        messageSender.sendMessage(message, action.getActionResponse(), buttonNames);
+    private void createSprintClicked(MessageSettings messageSettings) {
+        messageSender.sendMessage(messageSettings);
     }
 
-    private void createSprint(long chatId, Message message, Action action, List<String> buttonNames) {
-                String sprintName = message.getText();
-                sprintService.createSprint(new Sprint(chatId, sprintName));
-                lastActionList.addLastAction(chatId, action.getActionText());
-                messageSender.sendMessage(message, action.getActionResponse(), buttonNames);
+    private void createSprint(MessageSettings messageSettings) {
+        Long chatId = messageSettings.getMessage().getChatId();
+        String sprintName = messageSettings.getMessage().getText();
+        sprintService.createSprint(new Sprint(chatId, sprintName));
+        messageSender.sendMessage(messageSettings);
     }
 }

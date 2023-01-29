@@ -1,12 +1,8 @@
 package task.manager.telegram.bot.sender;
 
-import org.telegram.telegrambots.meta.api.objects.Message;
-
-import java.util.List;
+import task.manager.telegram.bot.model.MessageSettings;
 
 public interface MessageSender {
-    void sendMessage(Message message, String response, List<String> buttonNames);
-
-    void sendMessage(Message message, String response);
+    void sendMessage(MessageSettings messageSettings);
 
 }

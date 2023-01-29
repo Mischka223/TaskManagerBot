@@ -18,10 +18,8 @@ public class SprintService {
     }
 
     public List<Sprint> getSprintsByChatId(long chatId){
-        List<Sprint> sprintsByChatId = sprints.stream().filter(sprint -> sprint.getChatId() == chatId).collect(Collectors.toList());
-        System.out.println("SPRINTS BY  = " + sprintsByChatId);
-
-        System.out.println("ALL SPRINTS  = " + sprints);
-        return sprintsByChatId;
+        return sprints.stream()
+                .filter(sprint -> sprint.getChatId() == chatId)
+                .collect(Collectors.toList());
     }
 }

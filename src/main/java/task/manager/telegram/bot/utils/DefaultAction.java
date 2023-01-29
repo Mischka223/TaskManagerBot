@@ -30,6 +30,11 @@ public enum DefaultAction implements Action {
         return this.actions;
     }
 
+    @Override
+    public List<Action> getMessageActions() {
+        return null;
+    }
+
     public static Optional<DefaultAction> maybeDefaultAction(String text) {
         return Arrays.stream(DefaultAction.values())
                 .filter(defaultAction -> defaultAction.actionText.equals(text))

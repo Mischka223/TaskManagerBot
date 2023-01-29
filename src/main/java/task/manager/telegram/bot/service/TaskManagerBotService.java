@@ -4,15 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import task.manager.telegram.bot.utils.Parser;
+import task.manager.telegram.bot.utils.MessageProcessor;
 
 @Component
 public class TaskManagerBotService extends TelegramLongPollingBot {
-    private final Parser parser;
+    private final MessageProcessor messageProcessor;
 
     @Autowired
-    public TaskManagerBotService(Parser parser) {
-        this.parser = parser;
+    public TaskManagerBotService(MessageProcessor messageProcessor) {
+        this.messageProcessor = messageProcessor;
     }
 
     @Override
@@ -27,9 +27,8 @@ public class TaskManagerBotService extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        System.out.println(update);
         if (update.getMessage() != null && update.getMessage().hasText()){
-            parser.giveWork(update);
+            messageProcessor.processMessage(update);
         }
 
     }

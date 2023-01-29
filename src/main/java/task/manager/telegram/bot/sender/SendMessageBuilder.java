@@ -2,7 +2,8 @@ package task.manager.telegram.bot.sender;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
+import task.manager.telegram.bot.model.MessageSettings;
+import task.manager.telegram.bot.service.ButtonsService;
 
 import java.util.List;
 
@@ -15,21 +16,19 @@ public class SendMessageBuilder {
         this.buttonsService = buttonsService;
     }
 
-    public SendMessage getDefaultSendMessage(Message message, String text, List<String> buttonNames){
+    public SendMessage getDefaultSendMessage(MessageSettings messageSettings) {
         SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(String.valueOf(message.getChatId()));
-        sendMessage.setText(text);
-        System.out.println(sendMessage);
-        buttonsService.setButtons(sendMessage,buttonNames);
+        sendMessage.setChatId(String.valueOf(messageSettings.getMessage().getChatId()));
+        sendMessage.setText(messageSettings.getResponse());
+        buttonsService.setDefaultButtons(sendMessage,messageSettings.getButtonNames());
+        if (messageSettings.getMessageButtonNames() != null){
+            addMessageButtons(sendMessage,messageSettings.getMessageButtonNames());
+        }
     return sendMessage;
     }
 
-    public SendMessage getDefaultSendMessage(Message message, String text){
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(String.valueOf(message.getChatId()));
-        sendMessage.setText(text);
+    public void addMessageButtons(SendMessage sendMessage, List<String> messageButtonNames) {
         sendMessage.enableMarkdown(true);
-        System.out.println(sendMessage);
-    return sendMessage;
+        buttonsService.setButtonsForMessage(sendMessage,messageButtonNames);
     }
 }
