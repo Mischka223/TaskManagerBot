@@ -6,10 +6,22 @@ import java.util.List;
 import java.util.Optional;
 
 public enum SprintAction implements Action {
-    CREATE_SPRINT("створити спрінт", "Введи ім'я спрінта", Collections.emptyList(),Collections.emptyList()),
-    GET_ALL_SPRINT("переглянути спріти", "На даний момент у тебе немає спрінтів", List.of(CREATE_SPRINT), Collections.emptyList()),
-    SPRINT_CREATION("створення спрінта", "Ви створили спрінт", List.of(CREATE_SPRINT,GET_ALL_SPRINT), Collections.emptyList()),
-    EDIT_SPRINT("змінити спрінт","", List.of(CREATE_SPRINT,GET_ALL_SPRINT),Collections.emptyList());
+    CREATE_SPRINT("створити спрінт",
+            "Введи ім'я спрінта",
+            Collections.emptyList(),
+            Collections.emptyList()),
+    GET_ALL_SPRINT("переглянути спріти",
+            "На даний момент у тебе немає спрінтів",
+            List.of(CREATE_SPRINT),
+            Collections.emptyList()),
+    SPRINT_CREATION("створення спрінта",
+            "Ви створили спрінт",
+            List.of(CREATE_SPRINT, GET_ALL_SPRINT),
+            Collections.emptyList()),
+    EDIT_SPRINT("змінити спрінт",
+            "",
+            List.of(CREATE_SPRINT, GET_ALL_SPRINT),
+            Collections.emptyList());
 
     private final String actionText;
     private final String actionResponse;
@@ -24,11 +36,11 @@ public enum SprintAction implements Action {
         return this.actionText;
     }
 
-    public List<Action> getActions(){
+    public List<Action> getActions() {
         return this.actions;
     }
 
-    public List<Action> getMessageActions(){
+    public List<Action> getMessageActions() {
         return this.messageActions;
     }
 

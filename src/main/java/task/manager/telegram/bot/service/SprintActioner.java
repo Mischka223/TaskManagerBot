@@ -1,5 +1,7 @@
 package task.manager.telegram.bot.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -15,6 +17,9 @@ import java.util.stream.Collectors;
 
 @Component
 public class SprintActioner implements Actioner {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SprintActioner.class);
+
     private final SprintService sprintService;
     private final MessageSender messageSender;
 
@@ -33,6 +38,11 @@ public class SprintActioner implements Actioner {
                 .stream()
                 .map(Action::getActionText)
                 .collect(Collectors.toList());
+
+        LOG.info("Buttons: {}", buttonNames);
+        LOG.info("Message Button Names: {}", messageButtonNames);
+        LOG.info("MESSAGE: {}", message);
+
 
         MessageSettings messageSettings = new MessageSettings(message, action.getActionResponse(), buttonNames, messageButtonNames);
 
