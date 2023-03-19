@@ -39,11 +39,6 @@ public class SprintActioner implements Actioner {
                 .map(Action::getActionText)
                 .collect(Collectors.toList());
 
-        LOG.info("Buttons: {}", buttonNames);
-        LOG.info("Message Button Names: {}", messageButtonNames);
-        LOG.info("MESSAGE: {}", message);
-
-
         MessageSettings messageSettings = new MessageSettings(message, action.getActionResponse(), buttonNames, messageButtonNames);
 
         if (action.equals(SprintAction.GET_ALL_SPRINT)) {

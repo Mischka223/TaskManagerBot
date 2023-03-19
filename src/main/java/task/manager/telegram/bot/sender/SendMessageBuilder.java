@@ -21,7 +21,7 @@ public class SendMessageBuilder {
         sendMessage.setChatId(String.valueOf(messageSettings.getMessage().getChatId()));
         sendMessage.setText(messageSettings.getResponse());
         buttonsService.setDefaultButtons(sendMessage,messageSettings.getButtonNames());
-        if (messageSettings.getMessageButtonNames() != null){
+        if (!messageSettings.getMessageButtonNames().isEmpty()){
             addMessageButtons(sendMessage,messageSettings.getMessageButtonNames());
         }
     return sendMessage;

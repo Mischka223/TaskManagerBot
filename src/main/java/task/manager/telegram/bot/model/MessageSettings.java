@@ -2,6 +2,7 @@ package task.manager.telegram.bot.model;
 
 import org.telegram.telegrambots.meta.api.objects.Message;
 
+import java.util.Collections;
 import java.util.List;
 
 public class MessageSettings {
@@ -29,6 +30,7 @@ public class MessageSettings {
         this.message = messageSettings.getMessage();
         this.response = response;
         this.buttonNames = messageSettings.getButtonNames();
+        this.messageButtonNames = Collections.emptyList();
     }
 
     public List<String> getButtonNames() {
